@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DirectionalLayout
+    xmlns:ohos="http://schemas.huawei.com/res/ohos"
+    ohos:height="match_content"
+    ohos:width="match_parent"
+    ohos:orientation="vertical"
+    ohos:background_element="#fff"
+    ohos:top_margin="10vp">
+    <Image
+        ohos:height="150vp"
+        ohos:width="match_parent"
+        ohos:id="$+id:card_image"
+        ohos:image_src="$media:androidapple"/>
+    <Text
+        ohos:height="match_content"
+        ohos:width="match_parent"
+        ohos:id="$+id:helloText"
+        ohos:text_size="44fp"
+        ohos:text="Helo World"
+        ohos:padding="15vp"
+        ohos:text_color="#000"
+        ohos:background_element="#FF00FFCF"
+        />
+
+</DirectionalLayout>
