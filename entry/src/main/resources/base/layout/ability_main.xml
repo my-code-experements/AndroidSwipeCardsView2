@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <DirectionalLayout
     xmlns:ohos="http://schemas.huawei.com/res/ohos"
+    xmlns:swipecard="http://schemas.huawei.com/res/swipecard"
     ohos:height="match_parent"
     ohos:width="match_parent"
     ohos:alignment="center"
     ohos:background_element="#ddd"
     ohos:orientation="vertical">
-<!--    <in.arjsna.mylibrary.SwipeCardView-->
-<!--        ohos:height="0"-->
-<!--        ohos:width="match_parent"-->
-<!--        ohos:weight="1"-->
-<!--        ohos:id="$+id:card_stack_view"-->
-<!--        />-->
+    <in.arjsna.swipecardlib.SwipeCardView
+        ohos:height="0"
+        ohos:width="match_parent"
+        ohos:weight="1"
+        ohos:id="$+id:card_stack_view"
+        swipecard:rotation_degrees="15.5"
+        />
+
+<!--    swipecard:bottom_swipe_detect="false"-->
     <Text
         ohos:height="match_content"
         ohos:width="match_parent"

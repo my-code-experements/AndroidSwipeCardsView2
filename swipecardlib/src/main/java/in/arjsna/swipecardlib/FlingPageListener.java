@@ -1,28 +1,22 @@
 
 package in.arjsna.swipecardlib;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.graphics.PointF;
-import android.graphics.Rect;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.OvershootInterpolator;
+import ohos.agp.animation.Animator;
+import ohos.agp.components.Component;
+import ohos.agp.utils.Rect;
+import ohos.multimodalinput.event.TouchEvent;
 
 /**
  * Created by arjun on 4/25/16.
  */
-public class FlingPageListener implements View.OnTouchListener{
+public class FlingPageListener implements Component.TouchEventListener {
     private static final String TAG = "FlingPageListener";
     private static final int INVALID_POINTER_ID = -1;
     private final Rect RECT_BOTTOM;
     private final Rect RECT_TOP;
     private final Rect RECT_RIGHT;
     private final Rect RECT_LEFT;
-    private final View frame;
+    private final Component frame;
     private final float objectX;
     private final float objectY;
     private final int objectH;
@@ -44,18 +38,18 @@ public class FlingPageListener implements View.OnTouchListener{
 //        this(frame, itemAtPosition, 15f, flingListener);
 //    }
 
-    public FlingPageListener(View frame, Object itemAtPosition, FlingListener flingListener) {
+    public FlingPageListener(Component frame, Object itemAtPosition, FlingListener flingListener) {
         super();
         this.frame = frame;
-        this.objectX = frame.getX();
-        this.objectY = frame.getY();
+        this.objectX = frame.getTranslationX();
+        this.objectY = frame.getTranslationY();
         this.objectH = frame.getHeight();
         this.objectW = frame.getWidth();
         this.halfWidth = objectW / 2f;
         this.halfHeight = objectH / 2f;
         this.dataObject = itemAtPosition;
-        this.parentWidth = ((ViewGroup) frame.getParent()).getWidth();
-        this.parentHeight = ((ViewGroup) frame.getParent()).getHeight();
+        this.parentWidth = ((Component) frame.getComponentParent()).getWidth();
+        this.parentHeight = ((Component) frame.getComponentParent()).getHeight();
         this.mFlingListener = flingListener;
         this.RECT_TOP = new Rect((int) Math.max(frame.getLeft(), leftBorder()), 0, (int) Math.min(frame.getRight(), rightBorder()), (int) topBorder());
         this.RECT_BOTTOM = new Rect((int) Math.max(frame.getLeft(), leftBorder()), (int) bottomBorder(), (int) Math.min(frame.getRight(), rightBorder()), parentHeight);
@@ -76,24 +70,25 @@ public class FlingPageListener implements View.OnTouchListener{
     }
 
     public float topBorder() {
-        return parentHeight  / 4.f;
+        return parentHeight / 4.f;
     }
 
-    public boolean onTouch(View view, MotionEvent event) {
 
-        switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:
+    @Override
+    public boolean onTouchEvent(Component view, TouchEvent event) {
 
+        switch (event.getAction()) {
+            case TouchEvent.PRIMARY_POINT_DOWN:
                 mActivePointerId = event.getPointerId(0);
                 float x = 0;
                 float y = 0;
                 boolean success = false;
                 try {
-                    x = event.getX(mActivePointerId);
-                    y = event.getY(mActivePointerId);
+                    x = event.getPointerPosition(mActivePointerId).getX();
+                    y = event.getPointerPosition(mActivePointerId).getY();
                     success = true;
                 } catch (IllegalArgumentException e) {
-                    Log.w(TAG, "Exception in onTouch(view, event) : " + mActivePointerId, e);
+//                    Log.w(TAG, "Exception in onTouch(view, event) : " + mActivePointerId, e);
                 }
                 if (success) {
                     // Remember where we started
@@ -102,10 +97,10 @@ public class FlingPageListener implements View.OnTouchListener{
                     //to prevent an initial jump of the magnifier, aposX and aPosY must
                     //have the values from the magnifier frame
                     if (aPosX == 0) {
-                        aPosX = frame.getX();
+                        aPosX = frame.getTranslationX();
                     }
                     if (aPosY == 0) {
-                        aPosY = frame.getY();
+                        aPosY = frame.getTranslationY();
                     }
 
 //                    if (y < objectH / 2) {
@@ -115,21 +110,21 @@ public class FlingPageListener implements View.OnTouchListener{
 //                    }
                 }
 
-                view.getParent().requestDisallowInterceptTouchEvent(true);
+//                view.getParent().requestDisallowInterceptTouchEvent(true);
                 break;
 
-            case MotionEvent.ACTION_UP:
+            case TouchEvent.PRIMARY_POINT_UP: //other
                 mActivePointerId = INVALID_POINTER_ID;
                 resetCardViewOnStack();
-                view.getParent().requestDisallowInterceptTouchEvent(false);
+//                view.getParent().requestDisallowInterceptTouchEvent(false);
                 break;
 
-            case MotionEvent.ACTION_POINTER_DOWN:
+            case TouchEvent.OTHER_POINT_DOWN:
                 break;
-                /**
-                 * Constant for getActionMasked: A pressed gesture has finished, the motion contains the
-                 * final release location as well as any intermediate points since the last down or move event.
-                 */
+            /**
+             * Constant for getActionMasked: A pressed gesture has finished, the motion contains the
+             * final release location as well as any intermediate points since the last down or move event.
+             */
             /**
              * Constant for {@link #getActionMasked}: A non-primary pointer has gone up.
              * <p>
@@ -139,33 +134,33 @@ public class FlingPageListener implements View.OnTouchListener{
              * unmasked action returned by {@link #getAction}.
              * </p>
              */
-            case MotionEvent.ACTION_POINTER_UP:
-                final int pointerIndex = (event.getAction() &
-                        MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+            case TouchEvent.OTHER_POINT_UP:
+                final int pointerIndex = event.getAction();
+//                        & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
                 final int pointerId = event.getPointerId(pointerIndex);
                 if (pointerId == mActivePointerId) {
                     final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
-                    aDownTouchX = event.getX(newPointerIndex);
-                    aDownTouchY = event.getY(newPointerIndex);
+                    aDownTouchX = event.getPointerPosition(newPointerIndex).getX();
+                    aDownTouchY = event.getPointerPosition(newPointerIndex).getY();
                     mActivePointerId = event.getPointerId(newPointerIndex);
                 }
                 break;
-            case MotionEvent.ACTION_MOVE:
-                final int pointerIndexMove = event.findPointerIndex(mActivePointerId);
-                final float xMove = event.getX(pointerIndexMove);
-                final float yMove = event.getY(pointerIndexMove);
+            case TouchEvent.POINT_MOVE:
+//                final int pointerIndexMove = event.findPointerIndex(mActivePointerId);
+                final float xMove = event.getPointerPosition(mActivePointerId).getX();
+                final float yMove = event.getPointerPosition(mActivePointerId).getY();
                 final float dx = xMove - aDownTouchX;
                 final float dy = yMove - aDownTouchY;
 
                 aPosX += dx;
                 aPosY += dy;
-                frame.setY(aPosY);
+                frame.setTranslationY(aPosY);
                 mFlingListener.onScroll(getScrollProgressPercent());
                 break;
 
-            case MotionEvent.ACTION_CANCEL: {
+            case TouchEvent.CANCEL: {
                 mActivePointerId = INVALID_POINTER_ID;
-                view.getParent().requestDisallowInterceptTouchEvent(false);
+//                view.getParent().requestDisallowInterceptTouchEvent(false);
                 break;
             }
         }
@@ -185,27 +180,31 @@ public class FlingPageListener implements View.OnTouchListener{
     }
 
     private boolean resetCardViewOnStack() {
-        if(movedBeyondTopBorder()){
-            Log.i("Swipe ", "top");
+        if (movedBeyondTopBorder()) {
             onSelectedY(true, 100);
             mFlingListener.onScroll(-1.0f);
-        } else if(movedBeyondBottomBorder()){
-            Log.i("Swipe ", "bottom");
+        } else if (movedBeyondBottomBorder()) {
             onSelectedY(false, 100);
             mFlingListener.onScroll(1.0f);
-        }
-        else {
+        } else {
             float abslMoveDistance = Math.abs(aPosX - objectX);
             aPosX = 0;
             aPosY = 0;
             aDownTouchX = 0;
             aDownTouchY = 0;
-            frame.animate()
+            frame.createAnimatorProperty()
                     .setDuration(200)
-                    .setInterpolator(new OvershootInterpolator(1.5f))
-                    .x(objectX)
-                    .y(objectY)
-                    .rotation(0);
+                    .setCurveType(Animator.CurveType.OVERSHOOT)
+                    .moveToX(objectX)
+                    .moveToY(objectY)
+                    .rotate(0)
+                    .start();
+//            frame.animate()
+//                    .setDuration(200)
+//                    .setInterpolator(new OvershootInterpolator(1.5f))
+//                    .x(objectX)
+//                    .y(objectY)
+//                    .rotation(0);
             mFlingListener.onScroll(0.0f);
             if (abslMoveDistance < 4.0) {
                 mFlingListener.onClick(dataObject);
@@ -215,16 +214,16 @@ public class FlingPageListener implements View.OnTouchListener{
     }
 
     private boolean movedBeyondBottomBorder() {
-        int centerX = (int) (frame.getX() + halfWidth);
-        int centerY = (int) (frame.getY() + halfHeight);
-        return (RECT_BOTTOM.contains(centerX, centerY) || (centerY > RECT_BOTTOM.bottom && RECT_BOTTOM.contains(centerX, RECT_BOTTOM.top)));
+        int centerX = (int) (frame.getTranslationX() + halfWidth);
+        int centerY = (int) (frame.getTranslationY() + halfHeight);
+        return (RECT_BOTTOM.contains(centerX, centerY, centerX, centerY) || (centerY > RECT_BOTTOM.bottom && RECT_BOTTOM.contains(centerX, RECT_BOTTOM.top, centerX, RECT_BOTTOM.top)));
 //        return aPosY + halfHeight > bottomBorder();
     }
 
     private boolean movedBeyondTopBorder() {
-        int centerX = (int) (frame.getX() + halfWidth);
-        int centerY = (int) (frame.getY() + halfHeight);
-        return (RECT_TOP.contains(centerX, centerY) || (centerY < RECT_TOP.top && RECT_TOP.contains(centerX, 0)));
+        int centerX = (int) (frame.getTranslationX() + halfWidth);
+        int centerY = (int) (frame.getTranslationY() + halfHeight);
+        return (RECT_TOP.contains(centerX, centerY, centerX, centerY) || (centerY < RECT_TOP.top && RECT_TOP.contains(centerX, 0, centerX, 0)));
 //        return aPosY + halfHeight < topBorder();
     }
 
@@ -237,13 +236,40 @@ public class FlingPageListener implements View.OnTouchListener{
             exitY = parentHeight;
         }
 
-        this.frame.animate()
+        this.frame.createAnimatorProperty()
                 .setDuration(duration)
-                .setInterpolator(new AccelerateInterpolator())
-                .y(exitY)
-                .setListener(new AnimatorListenerAdapter() {
+                .setCurveType(Animator.CurveType.ACCELERATE)
+                .moveToY(exitY)
+                .setStateChangedListener(new Animator.StateChangedListener() {
+                    //#region unused
                     @Override
-                    public void onAnimationEnd(Animator animation) {
+                    public void onStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onStop(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onPause(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onResume(Animator animator) {
+
+                    }
+                    //#endregion unused
+
+                    @Override
+                    public void onEnd(Animator animator) {
                         if (isTop) {
                             mFlingListener.onCardExited();
                             mFlingListener.topExit(dataObject);
@@ -253,7 +279,8 @@ public class FlingPageListener implements View.OnTouchListener{
                         }
                         isAnimationRunning = false;
                     }
-                });
+
+                }).start();
     }
 
     private float getExitPointX(int exitYPoint) {
@@ -278,7 +305,6 @@ public class FlingPageListener implements View.OnTouchListener{
     public PointF getLastPoint() {
         return new PointF(this.aPosX, this.aPosY);
     }
-
 
 //    private float getRotationWidthOffset() {
 //        return objectW / MAX_COS - objectW;
