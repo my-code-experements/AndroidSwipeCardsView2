@@ -16,11 +16,8 @@
         swipecard:rotation_degrees="15.5"
         />
 
-    <!--    swipecard:bottom_swipe_detect="false"-->
-
 
     <DirectionalLayout
-
         ohos:height="match_content"
         ohos:width="match_parent"
         ohos:bottom_margin="20vp"

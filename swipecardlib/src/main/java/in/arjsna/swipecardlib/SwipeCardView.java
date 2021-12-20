@@ -1,77 +1,85 @@
 package in.arjsna.swipecardlib;
 
 
-import ohos.agp.components.*;
+import ohos.agp.components.AttrSet;
+import ohos.agp.components.BaseItemProvider;
+import ohos.agp.components.Component;
+import ohos.agp.components.ComponentContainer;
+import ohos.agp.components.StackLayout;
 import ohos.agp.database.DataSetSubscriber;
 import ohos.app.Context;
 import ohos.hiviewdfx.HiLog;
 import ohos.hiviewdfx.HiLogLabel;
 
+/**
+ * SwipeCardView.
+ */
 public class SwipeCardView extends BaseFlingAdapterView implements ComponentContainer.ArrangeListener {
 
-//#region properties
-
-
+    //#region properties
     private static final double SCALE_OFFSET = 0.04;
 
     private static final float TRANS_OFFSET = 45;
-    private static final String TAG = "SwipeCardView";
 
-    protected boolean DETECT_BOTTOM_SWIPE;
+    protected boolean detectBottomSwipe;
 
-    protected boolean DETECT_TOP_SWIPE;
+    protected boolean detectTopSwipe;
 
-    protected boolean DETECT_RIGHT_SWIPE;
+    protected boolean detectRightSwipe;
 
-    protected boolean DETECT_LEFT_SWIPE;
+    protected boolean detectLeftSwipe;
 
-    private float CURRENT_TRANSY_VAL = 0;
+    private float currentTransyVal = 0;
 
-    private float CURRENT_SCALE_VAL = 0;
+    private float currentScaleVal = 0;
 
-    private int INITIAL_MAX_VISIBLE = 3;
+    private int initialMaxVisible = 3;
 
-    private int MAX_VISIBLE = 3;
+    private int maxVisible = 3;
 
-    private int MIN_ADAPTER_STACK = 6;
+    private int minAdapterStack = 6;
 
-    private float ROTATION_DEGREES = 15.f;
+    private float rotationDegrees = 15.f;
 
     private int currentAdapterCount = 0;
 
     private BaseItemProvider mAdapter;
 
-    private int LAST_OBJECT_IN_STACK = 0;
+    private int lastObjectInStack = 0;
 
-    private OnCardFlingListener mFlingListener;
+    private OnCardFlingListener flingListener;
 
-    private AdapterDataSetObserver mDataSetObserver;
+    private AdapterDataSetObserver dataSetObserver;
 
-    private boolean mInLayout = false;
+    private boolean inLayout = false;
 
-    private Component mActiveCard = null;
+    private Component activeCard = null;
 
-    private OnItemClickListener mOnItemClickListener;
+    private OnItemClickListener onItemClickListener;
 
     private FlingCardListener flingCardListener;
 
-    private PointF mLastTouchPoint;
+    private PointF lastTouchPoint;
 
-    private int START_STACK_FROM = 0;
+    private int startStackFrom = 0;
 
     private int adapterCount = 0;
+
     private static final HiLogLabel LABEL_LOG = new HiLogLabel(HiLog.LOG_APP, 0x00201, "-MainAbility-");
 
-//#endregion properties
+    //#endregion properties
 
-    public final static class SwipeCardViewAttrs {
-        final static String ROTATION_DEGREES = "rotation_degrees";
-        final static String MIN_ADAPTER_STACK = "min_adapter_stack";
-        final static String MAX_VISIBLE = "max_visible";
-        final static String LEFT_SWIPE_DETECT = "left_swipe_detect";
-        final static String RIGHT_SWIPE_DETECT = "right_swipe_detect";
-        final static String TOP_SWIPE_DETECT = "top_swipe_detect";
-        final static String BOTTOM_SWIPE_DETECT = "bottom_swipe_detect";
+    /**
+     * SwipeCardViewAttrs.
+     */
+    public static final class SwipeCardViewAttrs {
+        static final String ROTATION_DEGREES = "rotation_degrees";
+        static final String MIN_ADAPTER_STACK = "min_adapter_stack";
+        static final String MAX_VISIBLE = "max_visible";
+        static final String LEFT_SWIPE_DETECT = "left_swipe_detect";
+        static final String RIGHT_SWIPE_DETECT = "right_swipe_detect";
+        static final String TOP_SWIPE_DETECT = "top_swipe_detect";
+        static final String BOTTOM_SWIPE_DETECT = "bottom_swipe_detect";
     }
 
     public SwipeCardView(Context context) {
@@ -79,29 +87,46 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
         initConst(null);
     }
 
+    /**
+     * SwipeCardView.
+     *
+     * @param context context
+     * @param attrSet attrSet
+     */
     public SwipeCardView(Context context, AttrSet attrSet) {
         super(context, attrSet);
         initConst(attrSet);
         Utils.entry_log();
     }
 
+    /**
+     * SwipeCardView.
+     *
+     * @param context   context
+     * @param attrSet   attrSet
+     * @param styleName styleName
+     */
     public SwipeCardView(Context context, AttrSet attrSet, String styleName) {
         super(context, attrSet, styleName);
         initConst(attrSet);
         Utils.entry_log();
     }
 
+    /**
+     * initConst.
+     *
+     * @param attrSet attrSet
+     */
     public void initConst(AttrSet attrSet) {
-
         AttrUtils attrUtils = new AttrUtils(attrSet);
-        MAX_VISIBLE = attrUtils.getIntFromAttr(SwipeCardViewAttrs.MAX_VISIBLE, MAX_VISIBLE);
-        MIN_ADAPTER_STACK = attrUtils.getIntFromAttr(SwipeCardViewAttrs.MIN_ADAPTER_STACK, MIN_ADAPTER_STACK);
-        ROTATION_DEGREES = attrUtils.getFloatFromAttr(SwipeCardViewAttrs.ROTATION_DEGREES, ROTATION_DEGREES);
-        DETECT_LEFT_SWIPE = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.LEFT_SWIPE_DETECT, true);
-        DETECT_RIGHT_SWIPE = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.RIGHT_SWIPE_DETECT, true);
-        DETECT_BOTTOM_SWIPE = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.BOTTOM_SWIPE_DETECT, true);
-        DETECT_TOP_SWIPE = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.TOP_SWIPE_DETECT, true);
-        INITIAL_MAX_VISIBLE = MAX_VISIBLE;
+        maxVisible = attrUtils.getIntFromAttr(SwipeCardViewAttrs.MAX_VISIBLE, maxVisible);
+        minAdapterStack = attrUtils.getIntFromAttr(SwipeCardViewAttrs.MIN_ADAPTER_STACK, minAdapterStack);
+        rotationDegrees = attrUtils.getFloatFromAttr(SwipeCardViewAttrs.ROTATION_DEGREES, rotationDegrees);
+        detectLeftSwipe = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.LEFT_SWIPE_DETECT, true);
+        detectRightSwipe = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.RIGHT_SWIPE_DETECT, true);
+        detectBottomSwipe = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.BOTTOM_SWIPE_DETECT, true);
+        detectTopSwipe = attrUtils.getBooleanFromAttr(SwipeCardViewAttrs.TOP_SWIPE_DETECT, true);
+        initialMaxVisible = maxVisible;
         setLayoutRefreshedListener(this);
         setArrangeListener(this);
         Utils.entry_log();
@@ -111,44 +136,47 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
     /**
      * A shortcut method to set both the listeners and the adapter.
      *
-     * @param context  The activity context which extends OnCardFlingListener, OnItemClickListener or both
-     * @param mAdapter The adapter you have to set.
+     * @param context The activity context which extends OnCardFlingListener, OnItemClickListener or both
+     * @param adapter The adapter you have to set.
      */
-    public void init(final Context context, BaseItemProvider mAdapter) {
+    public void init(final Context context, BaseItemProvider adapter) {
         Utils.entry_log();
         Utils.entry_log();
         if (context instanceof OnCardFlingListener) {
             Utils.entry_log();
-            mFlingListener = (OnCardFlingListener) context;
+            flingListener = (OnCardFlingListener) context;
         } else {
             throw new RuntimeException("Activity does not implement SwipeFlingAdapterView.OnCardFlingListener");
         }
         if (context instanceof OnItemClickListener) {
             Utils.entry_log();
-            mOnItemClickListener = (OnItemClickListener) context;
+            onItemClickListener = (OnItemClickListener) context;
         }
-        setAdapter(mAdapter);
+        setAdapter(adapter);
     }
 
 
     public Component getSelectedView() {
         Utils.entry_log();
-        return mActiveCard;
+        return activeCard;
     }
 
     public int getCurrentPosition() {
         Utils.entry_log();
-        return START_STACK_FROM;
+        return startStackFrom;
     }
 
     public Object getCurrentItem() {
         Utils.entry_log();
-        return mAdapter.getItem(START_STACK_FROM);
+        return mAdapter.getItem(startStackFrom);
     }
 
+    /**
+     * requestLayout.
+     */
     public void requestLayout() {
-        Utils.entry_log("mInLayout " + mInLayout);
-        if (!mInLayout) {
+        Utils.entry_log("mInLayout " + inLayout);
+        if (!inLayout) {
             Utils.entry_log();
             postLayout();
         }
@@ -172,42 +200,41 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
                 Utils.entry_log();
                 return;
             }
-            mInLayout = true;
+            inLayout = true;
 
             if (adapterCount == 0) {
                 Utils.entry_log();
 
                 removeAllComponents();
             } else {
-                Component topCard = getComponentAt(LAST_OBJECT_IN_STACK);
-                if (mActiveCard != null && topCard != null && topCard == mActiveCard) {
+                Component topCard = getComponentAt(lastObjectInStack);
+                if (activeCard != null && topCard != null && topCard == activeCard) {
                     Utils.entry_log();
                     if (this.flingCardListener.isTouching()) {
                         Utils.entry_log();
                         PointF lastPoint = this.flingCardListener.getLastPoint();
-                        if (this.mLastTouchPoint == null || !this.mLastTouchPoint.equals(lastPoint)) {
+                        if (this.lastTouchPoint == null || !this.lastTouchPoint.equals(lastPoint)) {
                             Utils.entry_log();
-                            this.mLastTouchPoint = lastPoint;
-                            for (int i = 0; i < LAST_OBJECT_IN_STACK; i++) {
+                            this.lastTouchPoint = lastPoint;
+                            for (int i = 0; i < lastObjectInStack; i++) {
                                 removeComponentAt(i);
-                            }// TODO: is he implementaion right ?
+                            }
                             Utils.entry_log("here");
-//                        removeViewsInLayout(0, LAST_OBJECT_IN_STACK);
                             layoutChildren(1, adapterCount);
                         }
                     }
                 } else {
                     // Reset the UI and set top view listener
                     removeAllComponents();
-                    layoutChildren(START_STACK_FROM, adapterCount);
+                    layoutChildren(startStackFrom, adapterCount);
                     setTopView();
                 }
             }
 
-            mInLayout = false;
+            inLayout = false;
 
-            if (currentAdapterCount <= MIN_ADAPTER_STACK) {
-                mFlingListener.onAdapterAboutToEmpty(currentAdapterCount);
+            if (currentAdapterCount <= minAdapterStack) {
+                flingListener.onAdapterAboutToEmpty(currentAdapterCount);
             }
         } catch (Exception ex) {
             HiLog.debug(LABEL_LOG, "Exception" + ex);
@@ -223,12 +250,12 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
     private void layoutChildren(int startingIndex, int adapterCount) {
         Utils.entry_log();
         resetOffsets();
-        if (adapterCount - startingIndex < MAX_VISIBLE) {
+        if (adapterCount - startingIndex < maxVisible) {
             Utils.entry_log();
-            MAX_VISIBLE = adapterCount - startingIndex;
+            maxVisible = adapterCount - startingIndex;
         }
         int viewStack = 0;
-        while (startingIndex < START_STACK_FROM + MAX_VISIBLE && startingIndex < adapterCount) {
+        while (startingIndex < startStackFrom + maxVisible && startingIndex < adapterCount) {
             Utils.entry_log();
             Component newUnderChild = mAdapter.getComponent(startingIndex, null, this);
             if (newUnderChild.getVisibility() != HIDE) {
@@ -239,168 +266,106 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
             viewStack++;
         }
 
-        /**
-         * This is to add a base view at end. To make an illusion that views come out from
-         * a base card. The scale and translation of this view is same as the one previous to
-         * this.
-         */
+        //
+        //
+        // this.
         if (startingIndex >= adapterCount) {
             Utils.entry_log();
-            LAST_OBJECT_IN_STACK = --viewStack;
+            lastObjectInStack = --viewStack;
             return;
         }
         Component newUnderChild = mAdapter.getComponent(startingIndex, null, this);
         if (newUnderChild != null && newUnderChild.getVisibility() != HIDE) {
             Utils.entry_log();
             makeAndAddView(newUnderChild, true);
-            LAST_OBJECT_IN_STACK = viewStack;
+            lastObjectInStack = viewStack;
         }
     }
 
     private void resetOffsets() {
         Utils.entry_log();
-        CURRENT_TRANSY_VAL = 0;
-        CURRENT_SCALE_VAL = 0;
+        currentTransyVal = 0;
+        currentScaleVal = 0;
     }
 
     int maxWidth = -1;
     int maxHeight = -1;
 
     private void makeAndAddView(Component child, boolean isBase) {
-        try {
-            LayoutConfig lp = child.getLayoutConfig();
 
-            Utils.entry_log();
-            if (isBase) {
-                Utils.entry_log();
-                child.setScaleX((float) (child.getScaleX() - (CURRENT_SCALE_VAL - SCALE_OFFSET)));
-                child.setScaleY((float) (child.getScaleY() - (CURRENT_SCALE_VAL - SCALE_OFFSET)));
-                child.setTranslationY(child.getTranslationY() + CURRENT_TRANSY_VAL - TRANS_OFFSET);
-            } else {
-                child.setScaleX(child.getScaleX() - CURRENT_SCALE_VAL);
-                child.setScaleY(child.getScaleY() - CURRENT_SCALE_VAL);
-                child.setTranslationY(child.getTranslationY() + CURRENT_TRANSY_VAL);
-            }
+        final LayoutConfig lp = child.getLayoutConfig();
 
-            CURRENT_SCALE_VAL += SCALE_OFFSET;
-            CURRENT_TRANSY_VAL += TRANS_OFFSET;
-            addComponent(child, 0);
-
-            //TODO:gravity ??
-
-            final boolean needToMeasure = true;// child.isLayoutRequested();
-            if (needToMeasure) {
-                Utils.entry_log();
-                int childWidthSpec = EstimateSpec.getChildSizeWithMode(lp.width, getWidthMeasureSpec(), EstimateSpec.PRECISE);
-
-
-                //            getChildMeasureSpec(getWidthMeasureSpec(),
-                //                    getPaddingLeft() + getPaddingRight() + lp.getMarginLeft() + lp.getMarginRight(),
-                //                    lp.width);
-                //            int childHeightSpec = getChildMeasureSpec(getHeightMeasureSpec(),
-                //                    getPaddingTop() + getPaddingBottom() + lp.topMargin + lp.bottomMargin,
-                //                    lp.height);
-                int childHeightSpec = EstimateSpec.getChildSizeWithMode(lp.height, getEstimatedHeight(), EstimateSpec.PRECISE);
-
-
-                child.estimateSize(childWidthSpec, childHeightSpec);
-//                estimateSize(childWidthSpec, childHeightSpec);
-            } else {
-//            cleanupLayoutState(child);
-            }
-            //
-//
-            int w = child.getEstimatedWidth();
-            int h = child.getEstimatedHeight();
-//
-//        int gravity = lp.gravity;
-//        if (gravity == -1) {
-//            Utils.entry_log();
-//            gravity = Gravity.TOP | Gravity.START;
-//        }
-//
-//
-//        int layoutDirection = getLayoutDirection();
-//        final int absoluteGravity = Gravity.getAbsoluteGravity(gravity, layoutDirection);
-//        final int verticalGravity = gravity & Gravity.VERTICAL_GRAVITY_MASK;
-//
-            int childLeft = getPaddingLeft() + lp.getMarginLeft();//(getWidth() + getPaddingLeft() - getPaddingRight() - w) / 2 + lp.getMarginLeft() - lp.getMarginRight();
-            int childTop = getPaddingTop() + lp.getMarginTop();//(getHeight() + getPaddingTop() - getPaddingBottom() - h) / 2 + lp.getMarginTop() - lp.getMarginBottom();
-//        switch (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
-//
-//            case Gravity.CENTER_HORIZONTAL:
-//                childLeft = (getWidth() + getPaddingLeft() - getPaddingRight()  - w) / 2 +
-//                        lp.leftMargin - lp.rightMargin;
-//                break;
-//            case Gravity.END:
-//                childLeft = getWidth() + getPaddingRight() - w - lp.rightMargin;
-//                break;
-//            case Gravity.START:
-//            default:
-//                childLeft = getPaddingLeft() + lp.leftMargin;
-//                break;
-//        }
-//        switch (verticalGravity) {
-//            case Gravity.CENTER_VERTICAL:
-//                childTop = (getHeight() + getPaddingTop() - getPaddingBottom()  - h) / 2 +
-//                        lp.topMargin - lp.bottomMargin;
-//                break;
-//            case Gravity.BOTTOM:
-//                childTop = getHeight() - getPaddingBottom() - h - lp.bottomMargin;
-//                break;
-//            case Gravity.TOP:
-//            default:
-//                childTop = getPaddingTop() + lp.topMargin;
-//                break;
-//        }
-//
-
-
-            // child.layout(childLeft, childTop, childLeft + w, childTop + h);
-            child.arrange(childLeft, childTop, childLeft + w, childTop + h);
-            HiLog.debug(LABEL_LOG, String.format("makeAndAddView: child.arrange(%d, %d, %d, %d) ", childLeft, childTop, childLeft + w, childTop + h));
-
-            maxWidth = Math.max(maxWidth, child.getWidth());
-            maxHeight = Math.max(maxHeight, child.getHeight());
-        } catch (Exception ex) {
-            HiLog.debug(LABEL_LOG, "Exception" + ex);
-            for (StackTraceElement st : ex.getStackTrace()) {
-                HiLog.debug(LABEL_LOG, "" + st);
-
-            }
-        }
-    }
-
-    public void relayoutChild(Component child, float scrollDis, int childcount) {
         Utils.entry_log();
-        float absScrollDis = scrollDis > 1 ? 1 : scrollDis;
-        float newScale = (float) (1 - SCALE_OFFSET * (MAX_VISIBLE - childcount) + absScrollDis * SCALE_OFFSET);
-        child.setScaleX(newScale);
-        child.setScaleY(newScale);
-        child.setTranslationY(TRANS_OFFSET * (MAX_VISIBLE - childcount) - absScrollDis * TRANS_OFFSET);
+        if (isBase) {
+            Utils.entry_log();
+            child.setScaleX((float) (child.getScaleX() - (currentScaleVal - SCALE_OFFSET)));
+            child.setScaleY((float) (child.getScaleY() - (currentScaleVal - SCALE_OFFSET)));
+            child.setTranslationY(child.getTranslationY() + currentTransyVal - TRANS_OFFSET);
+        } else {
+            child.setScaleX(child.getScaleX() - currentScaleVal);
+            child.setScaleY(child.getScaleY() - currentScaleVal);
+            child.setTranslationY(child.getTranslationY() + currentTransyVal);
+        }
+
+        currentScaleVal += SCALE_OFFSET;
+        currentTransyVal += TRANS_OFFSET;
+
+        addComponent(child, 0);
+
+        int childWidthSpec = EstimateSpec.getChildSizeWithMode(lp.width, getWidthMeasureSpec(), EstimateSpec.PRECISE);
+        int childHeightSpec = EstimateSpec.getChildSizeWithMode(lp.height, getEstimatedHeight(), EstimateSpec.PRECISE);
+
+        child.estimateSize(childWidthSpec, childHeightSpec);
+
+        int w = child.getEstimatedWidth();
+        int h = child.getEstimatedHeight();
+        int childLeft = getPaddingLeft() + lp.getMarginLeft();
+        int childTop = getPaddingTop() + lp.getMarginTop();
+
+        child.arrange(childLeft, childTop, childLeft + w, childTop + h);
+
+        maxWidth = Math.max(maxWidth, child.getWidth());
+        maxHeight = Math.max(maxHeight, child.getHeight());
+
     }
 
     /**
-     * Set the top view and add the fling listener
+     * reLayoutChild.
+     *
+     * @param child      child
+     * @param scrollDis  scrollDis
+     * @param childcount childcount
+     */
+    public void reLayoutChild(Component child, float scrollDis, int childcount) {
+        Utils.entry_log();
+        float absScrollDis = scrollDis > 1 ? 1 : scrollDis;
+        float newScale = (float) (1 - SCALE_OFFSET * (maxVisible - childcount) + absScrollDis * SCALE_OFFSET);
+        child.setScaleX(newScale);
+        child.setScaleY(newScale);
+        child.setTranslationY(TRANS_OFFSET * (maxVisible - childcount) - absScrollDis * TRANS_OFFSET);
+    }
+
+    /**
+     * Set the top view and add the fling listener.
      */
     private void setTopView() {
         Utils.entry_log();
         if (getChildCount() > 0) {
             Utils.entry_log();
-            mActiveCard = getComponentAt(LAST_OBJECT_IN_STACK);
-            if (mActiveCard != null) {
+            activeCard = getComponentAt(lastObjectInStack);
+            if (activeCard != null) {
                 Utils.entry_log();
                 flingCardListener = new FlingCardListener(
                         this,
-                        mActiveCard,
-                        mAdapter.getItem(START_STACK_FROM),
-                        ROTATION_DEGREES,
+                        activeCard,
+                        mAdapter.getItem(startStackFrom),
+                        rotationDegrees,
                         new FlingCardListener.FlingListener() {
                             @Override
                             public void onCardExited() {
                                 Utils.entry_log();
-                                 mActiveCard = null;
-                                START_STACK_FROM++;
+                                activeCard = null;
+                                startStackFrom++;
                                 currentAdapterCount--;
                                 requestLayout();
                             }
@@ -408,39 +373,48 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
                             @Override
                             public void leftExit(Object dataObject) {
                                 Utils.entry_log();
-                                mFlingListener.onCardExitLeft(dataObject);
+                                flingListener.onCardExitLeft(dataObject);
                             }
 
                             @Override
                             public void rightExit(Object dataObject) {
                                 Utils.entry_log();
-                                mFlingListener.onCardExitRight(dataObject);
+                                flingListener.onCardExitRight(dataObject);
                             }
 
                             @Override
                             public void onClick(Object dataObject) {
                                 Utils.entry_log();
-                                if (mOnItemClickListener != null)
-                                    mOnItemClickListener.onItemClicked(0, dataObject);
+                                if (onItemClickListener != null) {
+                                    onItemClickListener.onItemClicked(0, dataObject);
+                                }
 
                             }
 
                             @Override
                             public void onScroll(float scrollProgressPercent) {
                                 Utils.entry_log();
-                                mFlingListener.onScroll(scrollProgressPercent);
+                                flingListener.onScroll(scrollProgressPercent);
                                 int childCount = getChildCount() - 1;
-                                if (childCount < MAX_VISIBLE) {
+                                if (childCount < maxVisible) {
                                     Utils.entry_log();
                                     while (childCount > 0) {
                                         Utils.entry_log();
-                                        relayoutChild(getComponentAt(childCount - 1), Math.abs(scrollProgressPercent), childCount);
+                                        reLayoutChild(
+                                                getComponentAt(childCount - 1),
+                                                Math.abs(scrollProgressPercent),
+                                                childCount
+                                        );
                                         childCount--;
                                     }
                                 } else {
                                     while (childCount > 1) {
                                         Utils.entry_log();
-                                        relayoutChild(getComponentAt(childCount - 1), Math.abs(scrollProgressPercent), childCount - 1);
+                                        reLayoutChild(
+                                                getComponentAt(childCount - 1),
+                                                Math.abs(scrollProgressPercent),
+                                                childCount - 1
+                                        );
                                         childCount--;
                                     }
                                 }
@@ -449,32 +423,41 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
                             @Override
                             public void topExit(Object dataObject) {
                                 Utils.entry_log();
-                                mFlingListener.onCardExitTop(dataObject);
+                                flingListener.onCardExitTop(dataObject);
                             }
 
                             @Override
                             public void bottomExit(Object dataObject) {
                                 Utils.entry_log();
-                                mFlingListener.onCardExitBottom(dataObject);
+                                flingListener.onCardExitBottom(dataObject);
                             }
                         });
 
-                mActiveCard.setTouchEventListener(flingCardListener);
+                activeCard.setTouchEventListener(flingCardListener);
             }
         }
     }
 
+    /**
+     * restart.
+     */
     public void restart() {
         Utils.entry_log();
         currentAdapterCount = mAdapter.getCount();
         adapterCount = currentAdapterCount;
-        START_STACK_FROM = 0;
-        LAST_OBJECT_IN_STACK = 0;
-        MAX_VISIBLE = INITIAL_MAX_VISIBLE;
+        startStackFrom = 0;
+        lastObjectInStack = 0;
+        maxVisible = initialMaxVisible;
         layoutChildren(0, currentAdapterCount);
         requestLayout();
     }
 
+    /**
+     * getTopCardListener.
+     *
+     * @return FlingCardListener
+     * @throws NullPointerException if there is no method throws NullPointerException
+     */
     public FlingCardListener getTopCardListener() throws NullPointerException {
         if (flingCardListener == null) {
             Utils.entry_log();
@@ -483,14 +466,14 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
         return flingCardListener;
     }
 
-    public void setMaxVisible(int MAX_VISIBLE) {
+    public void setMaxVisible(int maxVisible) {
         Utils.entry_log();
-        this.MAX_VISIBLE = MAX_VISIBLE;
+        this.maxVisible = maxVisible;
     }
 
-    public void setMinStackInAdapter(int MIN_ADAPTER_STACK) {
+    public void setMinStackInAdapter(int minAdapterStack) {
         Utils.entry_log();
-        this.MIN_ADAPTER_STACK = MIN_ADAPTER_STACK;
+        this.minAdapterStack = minAdapterStack;
     }
 
 
@@ -500,12 +483,17 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
     }
 
 
+    /**
+     * setAdapter.
+     *
+     * @param adapter adapter
+     */
     public void setAdapter(BaseItemProvider adapter) {
         Utils.entry_log();
-        if (mAdapter != null && mDataSetObserver != null) {
+        if (mAdapter != null && dataSetObserver != null) {
             Utils.entry_log();
-            mAdapter.removeDataSubscriber(mDataSetObserver);
-            mDataSetObserver = null;
+            mAdapter.removeDataSubscriber(dataSetObserver);
+            dataSetObserver = null;
         }
 
         mAdapter = adapter;
@@ -513,21 +501,21 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
         adapterCount = mAdapter.getCount();
 
 
-        if (mAdapter != null && mDataSetObserver == null) {
+        if (mAdapter != null && dataSetObserver == null) {
             Utils.entry_log();
-            mDataSetObserver = new AdapterDataSetObserver();
-            mAdapter.addDataSubscriber(mDataSetObserver);
+            dataSetObserver = new AdapterDataSetObserver();
+            mAdapter.addDataSubscriber(dataSetObserver);
         }
     }
 
-    public void setFlingListener(OnCardFlingListener OnCardFlingListener) {
+    public void setFlingListener(OnCardFlingListener onCardFlingListener) {
         Utils.entry_log();
-        this.mFlingListener = OnCardFlingListener;
+        this.flingListener = onCardFlingListener;
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
         Utils.entry_log();
-        this.mOnItemClickListener = onItemClickListener;
+        this.onItemClickListener = onItemClickListener;
     }
 
     @Override
@@ -564,10 +552,16 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
 
     }
 
+    /**
+     * OnItemClickListener.
+     */
     public interface OnItemClickListener {
         void onItemClicked(int itemPosition, Object dataObject);
     }
 
+    /**
+     * OnCardFlingListener.
+     */
     public interface OnCardFlingListener {
         void onCardExitLeft(Object dataObject);
 

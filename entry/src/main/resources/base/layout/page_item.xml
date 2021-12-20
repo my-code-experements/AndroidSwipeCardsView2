@@ -26,10 +26,10 @@
     <Text
         ohos:height="match_content"
         ohos:width="match_content"
+        ohos:multiple_lines="true"
         ohos:padding="15vp"
         ohos:text="$string:hello_world_2"
         ohos:text_size="36vp"
-        ohos:multiple_lines="true"
         />
 
 </DirectionalLayout>

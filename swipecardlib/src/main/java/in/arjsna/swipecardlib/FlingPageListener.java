@@ -1,6 +1,6 @@
-
 package in.arjsna.swipecardlib;
 
+import static in.arjsna.swipecardlib.Utils.rectContains;
 import ohos.agp.animation.Animator;
 import ohos.agp.components.Component;
 import ohos.agp.utils.Rect;
@@ -14,10 +14,10 @@ import ohos.multimodalinput.event.TouchEvent;
 public class FlingPageListener implements Component.TouchEventListener {
     private static final String TAG = "FlingPageListener";
     private static final int INVALID_POINTER_ID = -1;
-    private final Rect RECT_BOTTOM;
-    private final Rect RECT_TOP;
-    private final Rect RECT_RIGHT;
-    private final Rect RECT_LEFT;
+    private final Rect rectBottom;
+    private final Rect rectTop;
+    private final Rect rectRight;
+    private final Rect rectLeft;
     private final Component frame;
     private final float objectX;
     private final float objectY;
@@ -30,16 +30,19 @@ public class FlingPageListener implements Component.TouchEventListener {
     private final int parentHeight;
     private final FlingListener mFlingListener;
     private int mActivePointerId = INVALID_POINTER_ID;
-    private float aDownTouchX;
-    private float aDownTouchY;
-    private float aPosX;
-    private float aPosY;
+    private float downTouchX;
+    private float downTouchY;
+    private float posX;
+    private float posY;
     private boolean isAnimationRunning = false;
 
-//    public FlingPageListener(View frame, Object itemAtPosition, FlingListener flingListener) {
-//        this(frame, itemAtPosition, 15f, flingListener);
-//    }
-
+    /**
+     * FlingPageListener.
+     *
+     * @param frame          frame
+     * @param itemAtPosition itemAtPosition
+     * @param flingListener  flingListener
+     */
     public FlingPageListener(Component frame, Object itemAtPosition, FlingListener flingListener) {
         super();
         this.frame = frame;
@@ -52,17 +55,31 @@ public class FlingPageListener implements Component.TouchEventListener {
         this.dataObject = itemAtPosition;
         this.parentWidth = ((Component) frame.getComponentParent()).getWidth();
         this.parentHeight = ((Component) frame.getComponentParent()).getHeight();
-        // todo: parent height ??
         this.mFlingListener = flingListener;
-        this.RECT_TOP = new Rect(
-                0+(int) Math.max(frame.getLeft(),leftBorder()),
+        this.rectTop = new Rect(
+                (int) Math.max(frame.getLeft(), leftBorder()),
                 0,
-                0 + (int) Math.min(frame.getRight(), rightBorder()),
-                0 + (int) topBorder()
+                (int) Math.min(frame.getRight(), rightBorder()),
+                (int) topBorder()
         );
-        this.RECT_BOTTOM = new Rect((int) Math.max(frame.getLeft(), leftBorder()), (int) bottomBorder(), (int) Math.min(frame.getRight(), rightBorder()), parentHeight);
-        this.RECT_LEFT = new Rect(0, (int) Math.max(frame.getTop(), topBorder()), (int) leftBorder(), (int) Math.min(frame.getBottom(), bottomBorder()));
-        this.RECT_RIGHT = new Rect((int) rightBorder(), (int) Math.max(frame.getTop(), topBorder()), parentWidth, (int) Math.min(frame.getBottom(), bottomBorder()));
+        this.rectBottom = new Rect(
+                (int) Math.max(frame.getLeft(), leftBorder()),
+                (int) bottomBorder(),
+                (int) Math.min(frame.getRight(), rightBorder()),
+                parentHeight
+        );
+        this.rectLeft = new Rect(
+                0,
+                (int) Math.max(frame.getTop(), topBorder()),
+                (int) leftBorder(),
+                (int) Math.min(frame.getBottom(), bottomBorder())
+        );
+        this.rectRight = new Rect(
+                (int) rightBorder(),
+                (int) Math.max(frame.getTop(), topBorder()),
+                parentWidth,
+                (int) Math.min(frame.getBottom(), bottomBorder())
+        );
     }
 
     public float leftBorder() {
@@ -97,81 +114,62 @@ public class FlingPageListener implements Component.TouchEventListener {
                     y = event.getPointerPosition(mActivePointerId).getY();
                     success = true;
                 } catch (IllegalArgumentException e) {
-//                    Log.w(TAG, "Exception in onTouch(view, event) : " + mActivePointerId, e);
+                    // pass
                 }
                 if (success) {
                     // Remember where we started
-                    aDownTouchX = x;
-                    aDownTouchY = y;
-                    //to prevent an initial jump of the magnifier, aposX and aPosY must
-                    //have the values from the magnifier frame
-                    if (aPosX == 0) {
-                        aPosX = frame.getContentPositionX();
+                    downTouchX = x;
+                    downTouchY = y;
+                    // to prevent an initial jump of the magnifier, aposX and aPosY must
+                    // have the values from the magnifier frame
+                    if (posX == 0) {
+                        posX = frame.getContentPositionX();
                     }
-                    if (aPosY == 0) {
-                        aPosY = frame.getContentPositionY();
+                    if (posY == 0) {
+                        posY = frame.getContentPositionY();
                     }
 
-//                    if (y < objectH / 2) {
-//                        touchPosition = TOUCH_ABOVE;
-//                    } else {
-//                        touchPosition = TOUCH_BELOW;
-//                    }
+                    // if (y < objectH / 2) {
+                    //     touchPosition = TOUCH_ABOVE;
+                    // } else {
+                    //     touchPosition = TOUCH_BELOW;
+                    // }
                 }
-
-//                view.getParent().requestDisallowInterceptTouchEvent(true);
                 break;
 
             case TouchEvent.PRIMARY_POINT_UP: //other
                 mActivePointerId = INVALID_POINTER_ID;
                 resetCardViewOnStack();
-//                view.getParent().requestDisallowInterceptTouchEvent(false);
                 break;
 
-            case TouchEvent.OTHER_POINT_DOWN:
-                break;
-            /**
-             * Constant for getActionMasked: A pressed gesture has finished, the motion contains the
-             * final release location as well as any intermediate points since the last down or move event.
-             */
-            /**
-             * Constant for {@link #getActionMasked}: A non-primary pointer has gone up.
-             * <p>
-             * Use {@link #getActionIndex} to retrieve the index of the pointer that changed.
-             * </p><p>
-             * The index is encoded in the {@link #ACTION_POINTER_INDEX_MASK} bits of the
-             * unmasked action returned by {@link #getAction}.
-             * </p>
-             */
             case TouchEvent.OTHER_POINT_UP:
                 final int pointerIndex = event.getAction();
-//                        & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
                 final int pointerId = event.getPointerId(pointerIndex);
                 if (pointerId == mActivePointerId) {
                     final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
-                    aDownTouchX = event.getPointerPosition(newPointerIndex).getX();
-                    aDownTouchY = event.getPointerPosition(newPointerIndex).getY();
+                    downTouchX = event.getPointerPosition(newPointerIndex).getX();
+                    downTouchY = event.getPointerPosition(newPointerIndex).getY();
                     mActivePointerId = event.getPointerId(newPointerIndex);
                 }
                 break;
             case TouchEvent.POINT_MOVE:
-//                final int pointerIndexMove = event.findPointerIndex(mActivePointerId);
                 final float xMove = event.getPointerPosition(mActivePointerId).getX();
                 final float yMove = event.getPointerPosition(mActivePointerId).getY();
-                final float dx = xMove - aDownTouchX;
-                final float dy = yMove - aDownTouchY;
+                final float dx = xMove - downTouchX;
+                final float dy = yMove - downTouchY;
 
-                aPosX += dx;
-                aPosY += dy;
-                frame.setContentPositionY(aPosY);
+                posX += dx;
+                posY += dy;
+                frame.setContentPositionY(posY);
                 mFlingListener.onScroll(getScrollProgressPercent());
                 break;
 
             case TouchEvent.CANCEL: {
                 mActivePointerId = INVALID_POINTER_ID;
-//                view.getParent().requestDisallowInterceptTouchEvent(false);
                 break;
             }
+            default:
+                break;
         }
 
         return true;
@@ -184,17 +182,15 @@ public class FlingPageListener implements Component.TouchEventListener {
         } else if (movedBeyondBottomBorder()) {
             return 1f;
         } else {
-            float zeroToOneValue = (aPosY + halfHeight - topBorder()) / (bottomBorder() - topBorder());
+            float zeroToOneValue = (posY + halfHeight - topBorder()) / (bottomBorder() - topBorder());
             return zeroToOneValue * 2f - 1f;
         }
     }
 
     private static final HiLogLabel LABEL_LOG = new HiLogLabel(HiLog.LOG_APP, 0x00201, "-MainAbility-");
 
-    private boolean resetCardViewOnStack() {
+    private void resetCardViewOnStack() {
         Utils.entry_log();
-        HiLog.debug(LABEL_LOG, "resetCardViewOnStack:movedBeyondTopBorder " + movedBeyondTopBorder());
-        HiLog.debug(LABEL_LOG, "resetCardViewOnStack:movedBeyondBottomBorder " + movedBeyondBottomBorder());
         if (movedBeyondTopBorder()) {
             onSelectedY(true, 100);
             mFlingListener.onScroll(-1.0f);
@@ -202,11 +198,11 @@ public class FlingPageListener implements Component.TouchEventListener {
             onSelectedY(false, 100);
             mFlingListener.onScroll(1.0f);
         } else {
-            float abslMoveDistance = Math.abs(aPosX - objectX);
-            aPosX = 0;
-            aPosY = 0;
-            aDownTouchX = 0;
-            aDownTouchY = 0;
+            final float abslMoveDistance = Math.abs(posX - objectX);
+            posX = 0;
+            posY = 0;
+            downTouchX = 0;
+            downTouchY = 0;
             frame.createAnimatorProperty()
                     .setDuration(200)
                     .setCurveType(Animator.CurveType.OVERSHOOT)
@@ -214,63 +210,30 @@ public class FlingPageListener implements Component.TouchEventListener {
                     .moveToY(objectY)
                     .rotate(0)
                     .start();
-//            frame.animate()
-//                    .setDuration(200)
-//                    .setInterpolator(new OvershootInterpolator(1.5f))
-//                    .x(objectX)
-//                    .y(objectY)
-//                    .rotation(0);
             mFlingListener.onScroll(0.0f);
             if (abslMoveDistance < 4.0) {
                 mFlingListener.onClick(dataObject);
             }
         }
-        return false;
     }
 
     private boolean movedBeyondBottomBorder() {
         Utils.entry_log();
         int centerX = (int) (frame.getContentPositionX() + halfWidth);
         int centerY = (int) (frame.getContentPositionY() + halfHeight);
-        return (RectContains(RECT_BOTTOM, centerX, centerY)
-                || (centerY > RECT_BOTTOM.bottom
-                && RectContains(RECT_BOTTOM, centerX, RECT_BOTTOM.top)));
-//        return aPosY + halfHeight > bottomBorder();
+        return (rectContains(rectBottom, centerX, centerY)
+                || (centerY > rectBottom.bottom
+                && rectContains(rectBottom, centerX, rectBottom.top)));
     }
 
     private boolean movedBeyondTopBorder() {
         Utils.entry_log();
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:RECT_TOP " + RECT_TOP);
         int centerX = (int) (frame.getContentPositionX() + halfWidth);
         int centerY = (int) (frame.getContentPositionY() + halfHeight);
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getContentPositionX() " + frame.getContentPositionX());
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getContentPositionY() " + frame.getContentPositionY());
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getTranslationX() " + frame.getTranslationX());
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getTranslationY() " + frame.getTranslationY());
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:centerX " + centerX);
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:centerY " + centerY);
-        return (RectContains(RECT_TOP, centerX, centerY)
-                || (centerY < RECT_TOP.top
-                && RectContains(RECT_TOP, centerX, 0)));
-//        return aPosY + halfHeight < topBorder();
+        return (rectContains(rectTop, centerX, centerY)
+                || (centerY < rectTop.top
+                && rectContains(rectTop, centerX, 0)));
     }
-
-    /**
-     * Returns true if (x,y) is inside the rectangle. The left and top are
-     * considered to be inside, while the right and bottom are not. This means
-     * that for a x,y to be contained: left <= x < right and top <= y < bottom.
-     * An empty rectangle never contains any point.
-     *
-     * @param x The X coordinate of the point being tested for containment
-     * @param y The Y coordinate of the point being tested for containment
-     * @return true iff (x,y) are contained by the rectangle, where containment
-     * means left <= x < right and top <= y < bottom
-     */
-    public boolean RectContains(Rect r, int x, int y) {
-        return r.left < r.right && r.top < r.bottom  // check for empty first
-                && x >= r.left && x < r.right && y >= r.top && y < r.bottom;
-    }
-
 
     private void onSelectedY(final boolean isTop, int duration) {
         Utils.entry_log();
@@ -330,19 +293,19 @@ public class FlingPageListener implements Component.TouchEventListener {
                 }).start();
     }
 
-    private float getExitPointX(int exitYPoint) {
+    private float getExitPointX(int exitPointY) {
         float[] x = new float[2];
         x[0] = objectX;
-        x[1] = aPosX;
+        x[1] = posX;
 
         float[] y = new float[2];
         y[0] = objectY;
-        y[1] = aPosY;
+        y[1] = posY;
 
         LinearRegression regression = new LinearRegression(y, x);
 
         //Your typical y = ax+b linear regression
-        return (float) regression.slope() * exitYPoint + (float) regression.intercept();
+        return (float) regression.slope() * exitPointY + (float) regression.intercept();
     }
 
     public boolean isTouching() {
@@ -350,13 +313,12 @@ public class FlingPageListener implements Component.TouchEventListener {
     }
 
     public PointF getLastPoint() {
-        return new PointF(this.aPosX, this.aPosY);
+        return new PointF(this.posX, this.posY);
     }
 
-//    private float getRotationWidthOffset() {
-//        return objectW / MAX_COS - objectW;
-//    }
-
+    /**
+     * FlingListener.
+     */
     protected interface FlingListener {
         void onCardExited();
 

@@ -35,15 +35,6 @@ abstract class BaseFlingAdapterView extends ComponentContainer
 
         return false;
     }
-    //
-//
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        this.widthMeasureSpec = widthMeasureSpec;
-//        this.heightMeasureSpec = heightMeasureSpec;
-//    }
-
 
     public int getWidthMeasureSpec() {
         return widthMeasureSpec;

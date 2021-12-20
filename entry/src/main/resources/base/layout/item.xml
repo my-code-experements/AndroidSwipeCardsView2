@@ -14,7 +14,7 @@
 
         <Image
             ohos:id="$+id:card_image"
-            ohos:height="350vp"
+            ohos:height="250vp"
             ohos:width="match_parent"
             ohos:image_src="$media:androidapple"
             ohos:scale_mode="zoom_center"/>
