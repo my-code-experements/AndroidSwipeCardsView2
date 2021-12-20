@@ -3,6 +3,7 @@ package in.arjsna.androidswipecardsview2.slice;
 import in.arjsna.androidswipecardsview2.Card;
 import in.arjsna.androidswipecardsview2.PageAdapter;
 import in.arjsna.androidswipecardsview2.ResourceTable;
+import in.arjsna.swipecardlib.SwipeCardView;
 import in.arjsna.swipecardlib.SwipePageView;
 import ohos.aafwk.ability.AbilitySlice;
 import ohos.aafwk.content.Intent;
@@ -37,7 +38,6 @@ public class PageSwipeAbilitySlice extends AbilitySlice {
 
                 @Override
                 public void onScroll(float scrollProgressPercent) {
-                    makeToast("onScroll");
                 }
 
                 @Override
@@ -54,6 +54,15 @@ public class PageSwipeAbilitySlice extends AbilitySlice {
             flingContainer.setOnItemClickListener((itemPosition, dataObject) -> {
                 makeToast("Pos: " + itemPosition + " Card: " + dataObject);
             });
+
+
+
+
+            flingContainer.setOnItemClickListener((itemPosition, dataObject) ->{
+                    makeToast("itemPosition: " + itemPosition);
+                }
+            );
+
         } catch (Exception ex) {
             HiLog.debug(LABEL_LOG, "Exception" + ex);
             for (StackTraceElement st : ex.getStackTrace()) {

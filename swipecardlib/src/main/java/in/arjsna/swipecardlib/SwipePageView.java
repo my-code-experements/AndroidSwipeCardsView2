@@ -34,21 +34,29 @@ public class SwipePageView extends BaseFlingAdapterView {
 
     public SwipePageView(Context context) {
         super(context);
-        init();
+        init(null);
     }
 
     public SwipePageView(Context context, AttrSet attrSet) {
         super(context, attrSet);
-        init();
+        init(attrSet);
     }
 
     public SwipePageView(Context context, AttrSet attrSet, String styleName) {
         super(context, attrSet, styleName);
-        init();
+        init(attrSet);
     }
 
-    void init() {
+    public static class SwipePageViewAttrs{
+       public static final String MIN_ADAPTER_STACK_PAGE="min_adapter_stack_page";
+    }
+
+    void init(AttrSet attrSet) {
         setLayoutRefreshedListener(this);
+        AttrUtils attrUtils = new AttrUtils(attrSet);
+        MAX_VISIBLE = attrUtils.getDimensionFromAttr(SwipeCardView.SwipeCardViewAttrs.MAX_VISIBLE, MAX_VISIBLE);
+        MIN_ADAPTER_STACK = attrUtils.getDimensionFromAttr(SwipePageViewAttrs.MIN_ADAPTER_STACK_PAGE, MIN_ADAPTER_STACK);
+//
     }
     //
 //    public SwipePageView(Context context) {
@@ -194,8 +202,8 @@ public class SwipePageView extends BaseFlingAdapterView {
 //        final int absoluteGravity = Gravity.getAbsoluteGravity(gravity, layoutDirection);
 //        final int verticalGravity = gravity & Gravity.VERTICAL_GRAVITY_MASK;
 //
-//        int childLeft;
-//        int childTop;
+            int childLeft = getPaddingLeft() + lp.getMarginLeft();//(getWidth() + getPaddingLeft() - getPaddingRight() - w) / 2 + lp.getMarginLeft() - lp.getMarginRight();
+            int childTop = getPaddingTop() + lp.getMarginTop();//(getHeight() + getPaddingTop() - getPaddingBottom() - h) / 2 + lp.getMarginTop() - lp.getMarginBottom();
 //        switch (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
 //            case Gravity.CENTER_HORIZONTAL:
 //                childLeft = (getWidth() + getPaddingLeft() - getPaddingRight()  - w) / 2 +
@@ -224,6 +232,7 @@ public class SwipePageView extends BaseFlingAdapterView {
 //        }
 //
 //        child.layout(childLeft, childTop, childLeft + w, childTop + h);
+            child.arrange(childLeft, childTop, childLeft + w, childTop + h);
         } catch (Exception ex) {
             HiLog.debug(LABEL_LOG, "Exception" + ex);
             for (StackTraceElement st : ex.getStackTrace()) {
@@ -243,8 +252,6 @@ public class SwipePageView extends BaseFlingAdapterView {
 
                 flingPageListener = new FlingPageListener(mActiveCard, mAdapter.getItem(0),
                         new FlingPageListener.FlingListener() {
-
-
                             @Override
                             public void onCardExited() {
                                 Utils.entry_log();
@@ -269,13 +276,13 @@ public class SwipePageView extends BaseFlingAdapterView {
                                 int childCount = getChildCount() - 1;
                                 if (childCount < MAX_VISIBLE) {
                                     while (childCount > 0) {
-                                        Utils.entry_log();
+                                        Utils.entry_log(childCount);
                                         relayoutChild(getComponentAt(childCount - 1), Math.abs(scrollProgressPercent), childCount);
                                         childCount--;
                                     }
                                 } else {
                                     while (childCount > 1) {
-                                        Utils.entry_log();
+                                        Utils.entry_log(childCount);
                                         relayoutChild(getComponentAt(childCount - 1), Math.abs(scrollProgressPercent), childCount - 1);
                                         childCount--;
                                     }
@@ -301,6 +308,7 @@ public class SwipePageView extends BaseFlingAdapterView {
     }
 
     public void relayoutChild(Component child, float scrollDis, int childcount) {
+        Utils.entry_log();
         float absScrollDis = scrollDis > 1 ? 1 : scrollDis;
         float newScale = (float) (1 - SCALE_OFFSET * (MAX_VISIBLE - childcount) + absScrollDis * SCALE_OFFSET);
         child.setScaleX(newScale);

@@ -8,21 +8,23 @@
     <DirectionalLayout
         ohos:height="match_content"
         ohos:width="match_parent"
-        ohos:background_element="#fff"
+        ohos:background_element="$graphic:card_background"
         ohos:orientation="vertical"
         >
 
         <Image
             ohos:id="$+id:card_image"
-            ohos:height="150vp"
+            ohos:height="350vp"
             ohos:width="match_parent"
-            ohos:image_src="$media:androidapple"/>
+            ohos:image_src="$media:androidapple"
+            ohos:scale_mode="zoom_center"/>
 
         <Text
             ohos:id="$+id:helloText"
             ohos:height="match_content"
             ohos:width="match_parent"
-            ohos:padding="15vp"
+            ohos:multiple_lines="true"
+            ohos:padding="25vp"
             ohos:text="Helo World"
             ohos:text_color="#000"
             ohos:text_size="44fp"

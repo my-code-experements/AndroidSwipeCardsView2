@@ -64,7 +64,7 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
 
 //#endregion properties
 
-    private final static class SwipeCardViewAttrs {
+    public final static class SwipeCardViewAttrs {
         final static String ROTATION_DEGREES = "rotation_degrees";
         final static String MIN_ADAPTER_STACK = "min_adapter_stack";
         final static String MAX_VISIBLE = "max_visible";
@@ -206,7 +206,9 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
 
             mInLayout = false;
 
-            if (currentAdapterCount <= MIN_ADAPTER_STACK) mFlingListener.onAdapterAboutToEmpty(currentAdapterCount);
+            if (currentAdapterCount <= MIN_ADAPTER_STACK) {
+                mFlingListener.onAdapterAboutToEmpty(currentAdapterCount);
+            }
         } catch (Exception ex) {
             HiLog.debug(LABEL_LOG, "Exception" + ex);
             for (StackTraceElement st : ex.getStackTrace()) {
@@ -397,7 +399,7 @@ public class SwipeCardView extends BaseFlingAdapterView implements ComponentCont
                             @Override
                             public void onCardExited() {
                                 Utils.entry_log();
-                                mActiveCard = null;
+                                 mActiveCard = null;
                                 START_STACK_FROM++;
                                 currentAdapterCount--;
                                 requestLayout();

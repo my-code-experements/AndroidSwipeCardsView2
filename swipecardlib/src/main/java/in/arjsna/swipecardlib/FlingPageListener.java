@@ -4,6 +4,8 @@ package in.arjsna.swipecardlib;
 import ohos.agp.animation.Animator;
 import ohos.agp.components.Component;
 import ohos.agp.utils.Rect;
+import ohos.hiviewdfx.HiLog;
+import ohos.hiviewdfx.HiLogLabel;
 import ohos.multimodalinput.event.TouchEvent;
 
 /**
@@ -41,8 +43,8 @@ public class FlingPageListener implements Component.TouchEventListener {
     public FlingPageListener(Component frame, Object itemAtPosition, FlingListener flingListener) {
         super();
         this.frame = frame;
-        this.objectX = frame.getTranslationX();
-        this.objectY = frame.getTranslationY();
+        this.objectX = frame.getContentPositionX();
+        this.objectY = frame.getContentPositionX();
         this.objectH = frame.getHeight();
         this.objectW = frame.getWidth();
         this.halfWidth = objectW / 2f;
@@ -50,8 +52,14 @@ public class FlingPageListener implements Component.TouchEventListener {
         this.dataObject = itemAtPosition;
         this.parentWidth = ((Component) frame.getComponentParent()).getWidth();
         this.parentHeight = ((Component) frame.getComponentParent()).getHeight();
+        // todo: parent height ??
         this.mFlingListener = flingListener;
-        this.RECT_TOP = new Rect((int) Math.max(frame.getLeft(), leftBorder()), 0, (int) Math.min(frame.getRight(), rightBorder()), (int) topBorder());
+        this.RECT_TOP = new Rect(
+                0+(int) Math.max(frame.getLeft(),leftBorder()),
+                0,
+                0 + (int) Math.min(frame.getRight(), rightBorder()),
+                0 + (int) topBorder()
+        );
         this.RECT_BOTTOM = new Rect((int) Math.max(frame.getLeft(), leftBorder()), (int) bottomBorder(), (int) Math.min(frame.getRight(), rightBorder()), parentHeight);
         this.RECT_LEFT = new Rect(0, (int) Math.max(frame.getTop(), topBorder()), (int) leftBorder(), (int) Math.min(frame.getBottom(), bottomBorder()));
         this.RECT_RIGHT = new Rect((int) rightBorder(), (int) Math.max(frame.getTop(), topBorder()), parentWidth, (int) Math.min(frame.getBottom(), bottomBorder()));
@@ -76,6 +84,7 @@ public class FlingPageListener implements Component.TouchEventListener {
 
     @Override
     public boolean onTouchEvent(Component view, TouchEvent event) {
+        Utils.entry_log();
 
         switch (event.getAction()) {
             case TouchEvent.PRIMARY_POINT_DOWN:
@@ -97,10 +106,10 @@ public class FlingPageListener implements Component.TouchEventListener {
                     //to prevent an initial jump of the magnifier, aposX and aPosY must
                     //have the values from the magnifier frame
                     if (aPosX == 0) {
-                        aPosX = frame.getTranslationX();
+                        aPosX = frame.getContentPositionX();
                     }
                     if (aPosY == 0) {
-                        aPosY = frame.getTranslationY();
+                        aPosY = frame.getContentPositionY();
                     }
 
 //                    if (y < objectH / 2) {
@@ -154,7 +163,7 @@ public class FlingPageListener implements Component.TouchEventListener {
 
                 aPosX += dx;
                 aPosY += dy;
-                frame.setTranslationY(aPosY);
+                frame.setContentPositionY(aPosY);
                 mFlingListener.onScroll(getScrollProgressPercent());
                 break;
 
@@ -169,6 +178,7 @@ public class FlingPageListener implements Component.TouchEventListener {
     }
 
     private float getScrollProgressPercent() {
+        Utils.entry_log();
         if (movedBeyondTopBorder()) {
             return -1f;
         } else if (movedBeyondBottomBorder()) {
@@ -179,7 +189,12 @@ public class FlingPageListener implements Component.TouchEventListener {
         }
     }
 
+    private static final HiLogLabel LABEL_LOG = new HiLogLabel(HiLog.LOG_APP, 0x00201, "-MainAbility-");
+
     private boolean resetCardViewOnStack() {
+        Utils.entry_log();
+        HiLog.debug(LABEL_LOG, "resetCardViewOnStack:movedBeyondTopBorder " + movedBeyondTopBorder());
+        HiLog.debug(LABEL_LOG, "resetCardViewOnStack:movedBeyondBottomBorder " + movedBeyondBottomBorder());
         if (movedBeyondTopBorder()) {
             onSelectedY(true, 100);
             mFlingListener.onScroll(-1.0f);
@@ -214,20 +229,51 @@ public class FlingPageListener implements Component.TouchEventListener {
     }
 
     private boolean movedBeyondBottomBorder() {
-        int centerX = (int) (frame.getTranslationX() + halfWidth);
-        int centerY = (int) (frame.getTranslationY() + halfHeight);
-        return (RECT_BOTTOM.contains(centerX, centerY, centerX, centerY) || (centerY > RECT_BOTTOM.bottom && RECT_BOTTOM.contains(centerX, RECT_BOTTOM.top, centerX, RECT_BOTTOM.top)));
+        Utils.entry_log();
+        int centerX = (int) (frame.getContentPositionX() + halfWidth);
+        int centerY = (int) (frame.getContentPositionY() + halfHeight);
+        return (RectContains(RECT_BOTTOM, centerX, centerY)
+                || (centerY > RECT_BOTTOM.bottom
+                && RectContains(RECT_BOTTOM, centerX, RECT_BOTTOM.top)));
 //        return aPosY + halfHeight > bottomBorder();
     }
 
     private boolean movedBeyondTopBorder() {
-        int centerX = (int) (frame.getTranslationX() + halfWidth);
-        int centerY = (int) (frame.getTranslationY() + halfHeight);
-        return (RECT_TOP.contains(centerX, centerY, centerX, centerY) || (centerY < RECT_TOP.top && RECT_TOP.contains(centerX, 0, centerX, 0)));
+        Utils.entry_log();
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:RECT_TOP " + RECT_TOP);
+        int centerX = (int) (frame.getContentPositionX() + halfWidth);
+        int centerY = (int) (frame.getContentPositionY() + halfHeight);
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getContentPositionX() " + frame.getContentPositionX());
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getContentPositionY() " + frame.getContentPositionY());
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getTranslationX() " + frame.getTranslationX());
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:frame.getTranslationY() " + frame.getTranslationY());
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:centerX " + centerX);
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:centerY " + centerY);
+        return (RectContains(RECT_TOP, centerX, centerY)
+                || (centerY < RECT_TOP.top
+                && RectContains(RECT_TOP, centerX, 0)));
 //        return aPosY + halfHeight < topBorder();
     }
 
+    /**
+     * Returns true if (x,y) is inside the rectangle. The left and top are
+     * considered to be inside, while the right and bottom are not. This means
+     * that for a x,y to be contained: left <= x < right and top <= y < bottom.
+     * An empty rectangle never contains any point.
+     *
+     * @param x The X coordinate of the point being tested for containment
+     * @param y The Y coordinate of the point being tested for containment
+     * @return true iff (x,y) are contained by the rectangle, where containment
+     * means left <= x < right and top <= y < bottom
+     */
+    public boolean RectContains(Rect r, int x, int y) {
+        return r.left < r.right && r.top < r.bottom  // check for empty first
+                && x >= r.left && x < r.right && y >= r.top && y < r.bottom;
+    }
+
+
     private void onSelectedY(final boolean isTop, int duration) {
+        Utils.entry_log();
         isAnimationRunning = true;
         float exitY;
         if (isTop) {
@@ -244,7 +290,7 @@ public class FlingPageListener implements Component.TouchEventListener {
                     //#region unused
                     @Override
                     public void onStart(Animator animator) {
-
+                        Utils.entry_log();
                     }
 
                     @Override
@@ -270,6 +316,7 @@ public class FlingPageListener implements Component.TouchEventListener {
 
                     @Override
                     public void onEnd(Animator animator) {
+                        Utils.entry_log();
                         if (isTop) {
                             mFlingListener.onCardExited();
                             mFlingListener.topExit(dataObject);

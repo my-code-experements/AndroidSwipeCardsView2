@@ -13,6 +13,7 @@ public class FlingCardListener implements Component.TouchEventListener {
 
     private static final String TAG = "entry_log " + FlingCardListener.class.getSimpleName();
 
+    //#region parameters
     private static final int INVALID_POINTER_ID = -1;
 
     private final SwipeCardView parentView;
@@ -68,8 +69,8 @@ public class FlingCardListener implements Component.TouchEventListener {
 
     private boolean isAnimationRunning = false;
 
-    private float MAX_COS = (float) Math.cos(Math.toRadians(45));
-
+    private final float MAX_COS = (float) Math.cos(Math.toRadians(45));
+    //#endregion parameters
     //
     public FlingCardListener(SwipeCardView parent, Component frame, Object itemAtPosition, FlingListener flingListener) {
         this(parent, frame, itemAtPosition, 15f, flingListener);
@@ -81,8 +82,8 @@ public class FlingCardListener implements Component.TouchEventListener {
         Utils.entry_log();
         this.parentView = parent;
         this.frame = frame;
-        this.objectX = frame.getTranslationX();
-        this.objectY = frame.getTranslationY();
+        this.objectX = frame.getContentPositionX();
+        this.objectY = frame.getContentPositionY();
         this.objectH = frame.getHeight();
         this.objectW = frame.getWidth();
         this.halfWidth = objectW / 2f;
@@ -92,16 +93,19 @@ public class FlingCardListener implements Component.TouchEventListener {
         this.parentHeight = ((Component) frame.getComponentParent()).getHeight();
         this.BASE_ROTATION_DEGREES = rotation_degrees;
         this.mFlingListener = flingListener;
-        HiLog.debug(LABEL_LOG, "FlingCardListener: objectX "+objectX);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: objectY "+objectY);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: objectH "+objectH);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: objectW "+objectW);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: halfWidth "+halfWidth);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: halfHeight "+halfHeight);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: dataObject "+dataObject);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: parentWidth "+parentWidth);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: parentHeight "+parentHeight);
-        HiLog.debug(LABEL_LOG, "FlingCardListener: BASE_ROTATION_DEGREES "+BASE_ROTATION_DEGREES);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: frame.getComponentParent() " + frame.getComponentParent());
+        HiLog.debug(LABEL_LOG, "FlingCardListener: parentWidth " + parentWidth);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: parentHeight " + parentHeight);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: parent.getHeight " + parent.getHeight());
+        HiLog.debug(LABEL_LOG, "FlingCardListener: parent.getWidth " + parent.getWidth());
+        HiLog.debug(LABEL_LOG, "FlingCardListener: objectX " + objectX);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: objectY " + objectY);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: objectH " + objectH);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: objectW " + objectW);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: halfWidth " + halfWidth);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: halfHeight " + halfHeight);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: dataObject " + dataObject);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: BASE_ROTATION_DEGREES " + BASE_ROTATION_DEGREES);
         HiLog.debug(LABEL_LOG, "FlingCardListener: frame.getLeft() -> " + frame.getLeft());
         HiLog.debug(LABEL_LOG, "FlingCardListener: frame.getRight() -> " + frame.getRight());
         HiLog.debug(LABEL_LOG, "FlingCardListener: leftBorder() -> " + leftBorder());
@@ -117,9 +121,17 @@ public class FlingCardListener implements Component.TouchEventListener {
         HiLog.debug(LABEL_LOG, "FlingCardListener: top " + RECT_TOP.top);
         HiLog.debug(LABEL_LOG, "FlingCardListener: right " + RECT_TOP.right);
         HiLog.debug(LABEL_LOG, "FlingCardListener: bottom " + RECT_TOP.bottom);
-        this.RECT_BOTTOM = new Rect((int) Math.max(frame.getLeft(), leftBorder()), (int) bottomBorder(), (int) Math.min(frame.getRight(), rightBorder()), parentHeight);
+        this.RECT_BOTTOM = new Rect(
+                0+(int) Math.max(frame.getLeft(), leftBorder()),
+                0+(int) bottomBorder(),
+                0+(int) Math.min(frame.getRight(), rightBorder()),
+                0+parentHeight);
         this.RECT_LEFT = new Rect(0, (int) Math.max(frame.getTop(), topBorder()), (int) leftBorder(), (int) Math.min(frame.getBottom(), bottomBorder()));
         this.RECT_RIGHT = new Rect((int) rightBorder(), (int) Math.max(frame.getTop(), topBorder()), parentWidth, (int) Math.min(frame.getBottom(), bottomBorder()));
+        HiLog.debug(LABEL_LOG, "FlingCardListener: RECT_TOP " + RECT_TOP);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: RECT_BOTTOM " + RECT_BOTTOM);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: RECT_LEFT " + RECT_LEFT);
+        HiLog.debug(LABEL_LOG, "FlingCardListener: RECT_RIGHT " + RECT_RIGHT);
     }
 
 
@@ -165,7 +177,7 @@ public class FlingCardListener implements Component.TouchEventListener {
                     break;
             }
             switch (event.getAction()) {
-                case TouchEvent.PRIMARY_POINT_DOWN:
+                case TouchEvent.PRIMARY_POINT_DOWN: {
                     mActivePointerId = event.getPointerId(0);
                     float x = 0;
                     float y = 0;
@@ -198,17 +210,19 @@ public class FlingCardListener implements Component.TouchEventListener {
                     }
 //                view.getComponentParent().requestDisallowInterceptTouchEvent(true);
                     break;
+                }
 
-                case TouchEvent.PRIMARY_POINT_UP:
+                case TouchEvent.PRIMARY_POINT_UP: {
                     mActivePointerId = INVALID_POINTER_ID;
                     resetCardViewOnStack();
 //                view.getComponentParent().requestDisallowInterceptTouchEvent(false);
                     break;
+                }
 
                 case TouchEvent.OTHER_POINT_DOWN:
                     break;
 
-                case TouchEvent.OTHER_POINT_UP:
+                case TouchEvent.OTHER_POINT_UP: {
                     final int pointerIndex = (event.getAction());
                     final int pointerId = event.getPointerId(pointerIndex);
                     if (pointerId == mActivePointerId) {
@@ -218,14 +232,15 @@ public class FlingCardListener implements Component.TouchEventListener {
                         mActivePointerId = event.getPointerId(newPointerIndex);
                     }
                     break;
+                }
 
-                case TouchEvent.POINT_MOVE:
+                case TouchEvent.POINT_MOVE: {
 //                final int pointerIndexMove = event.findPointerIndex(mActivePointerId);
                     final float xMove = event.getPointerPosition(mActivePointerId).getX();
                     final float yMove = event.getPointerPosition(mActivePointerId).getY();
+
                     final float dx = xMove - aDownTouchX;
                     final float dy = yMove - aDownTouchY;
-
                     // BUG: it is only incrementing so it is getting out of bound
                     aPosX += dx;
                     aPosY += dy;
@@ -237,11 +252,25 @@ public class FlingCardListener implements Component.TouchEventListener {
                         Utils.entry_log();
                         rotation = -rotation;
                     }
-                    frame.setTranslationX(aPosX);
-                    frame.setTranslationY(aPosY);
+                    frame.setContentPositionX(aPosX);
+                    frame.setContentPositionY(aPosY);
                     frame.setRotation(rotation);
+
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:xMove "+xMove);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:yMove "+yMove);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:aDownTouchX "+aDownTouchX);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:aDownTouchY "+aDownTouchY);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:dx "+dx);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:dy "+dy);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:aPosX "+aPosX);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:aPosY "+aPosY);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:rotation:BASE_ROTATION_DEGREES "+BASE_ROTATION_DEGREES);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:rotation:distobjectX "+distobjectX);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:rotation:parentWidth "+parentWidth);
+                    HiLog.debug(LABEL_LOG, "onTouchEvent:rotation "+rotation);
                     mFlingListener.onScroll(getScrollProgressPercent());
                     break;
+                }
 
                 case TouchEvent.CANCEL: {
                     mActivePointerId = INVALID_POINTER_ID;
@@ -271,12 +300,8 @@ public class FlingCardListener implements Component.TouchEventListener {
         }
     }
 
-    private boolean resetCardViewOnStack() {
+    private void resetCardViewOnStack() {
         Utils.entry_log();
-        HiLog.debug(LABEL_LOG, "resetCardViewOnStack: parentView.DETECT_LEFT_SWIPE " + parentView.DETECT_LEFT_SWIPE);
-        HiLog.debug(LABEL_LOG, "resetCardViewOnStack: parentView.DETECT_TOP_SWIPE " + parentView.DETECT_TOP_SWIPE);
-        HiLog.debug(LABEL_LOG, "resetCardViewOnStack: parentView.DETECT_BOTTOM_SWIPE " + parentView.DETECT_BOTTOM_SWIPE);
-        HiLog.debug(LABEL_LOG, "resetCardViewOnStack: parentView.DETECT_RIGHT_SWIPE " + parentView.DETECT_RIGHT_SWIPE);
         if (movedBeyondLeftBorder() && parentView.DETECT_LEFT_SWIPE) {
             HiLog.debug(LABEL_LOG, "resetCardViewOnStack: movedBeyondLeftBorder");
             // Left Swipe
@@ -321,15 +346,14 @@ public class FlingCardListener implements Component.TouchEventListener {
                 mFlingListener.onClick(dataObject);
             }
         }
-        return false;
     }
 
 
     private boolean movedBeyondLeftBorder() {
 
         Utils.entry_log();
-        int centerX = (int) (frame.getTranslationX() + halfWidth);
-        int centerY = (int) (frame.getTranslationY() + halfHeight);
+        int centerX = (int) (frame.getContentPositionX() + halfWidth);
+        int centerY = (int) (frame.getContentPositionY() + halfHeight);
         HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:halfWidth " + halfWidth);
         HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:halfHeight " + halfHeight);
         HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:centerX " + centerX);
@@ -338,7 +362,7 @@ public class FlingCardListener implements Component.TouchEventListener {
         HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:RectContains(RECT_LEFT, 0 + centerX, 0 + centerY) " + RectContains(RECT_LEFT, 0 + centerX, 0 + centerY));
         HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:centerX < RECT_LEFT.left " + (centerX < RECT_LEFT.left));
         HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:RectContains(RECT_LEFT, 0, centerY) " + (RectContains(RECT_LEFT, 0, centerY)));
-        HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:RectContains(new Rect(0,459,270,1151), 0, 587)) " + (RectContains(new Rect(0,459,270,1151), 0, 587)));
+        HiLog.debug(LABEL_LOG, "movedBeyondLeftBorder:RectContains(new Rect(0,459,270,1151), 0, 587)) " + (RectContains(new Rect(0, 459, 270, 1151), 0, 587)));
         return (RectContains(RECT_LEFT, 0 + centerX, 0 + centerY)
                 || (centerX < RECT_LEFT.left
                 && RectContains(RECT_LEFT, 0, centerY)));
@@ -346,8 +370,8 @@ public class FlingCardListener implements Component.TouchEventListener {
 
     private boolean movedBeyondRightBorder() {
         Utils.entry_log();
-        int centerX = (int) (frame.getTranslationX() + halfWidth);
-        int centerY = (int) (frame.getTranslationY() + halfHeight);
+        int centerX = (int) (frame.getContentPositionX() + halfWidth);
+        int centerY = (int) (frame.getContentPositionY() + halfHeight);
         return (RectContains(RECT_RIGHT, centerX, centerY)
                 || (centerX > RECT_RIGHT.right
                 && RectContains(RECT_RIGHT, RECT_RIGHT.left, centerY)));
@@ -355,8 +379,8 @@ public class FlingCardListener implements Component.TouchEventListener {
 
     private boolean movedBeyondBottomBorder() {
         Utils.entry_log();
-        int centerX = (int) (frame.getTranslationX() + halfWidth);
-        int centerY = (int) (frame.getTranslationY() + halfHeight);
+        int centerX = (int) (frame.getContentPositionX() + halfWidth);
+        int centerY = (int) (frame.getContentPositionY() + halfHeight);
         return (RectContains(RECT_BOTTOM, centerX, centerY)
                 || (centerY > RECT_BOTTOM.bottom
                 && RectContains(RECT_BOTTOM, centerX, RECT_BOTTOM.top)));
@@ -384,11 +408,11 @@ public class FlingCardListener implements Component.TouchEventListener {
         // movedBeyondTopBorder:RECT_TOP (400,0,0,480)
         // why                                  | is zero ??
 
-        int centerX = (int) (frame.getTranslationX() + halfWidth);
-        int centerY = (int) (frame.getTranslationY() + halfHeight);
+        int centerX = (int) (frame.getContentPositionX() + halfWidth);
+        int centerY = (int) (frame.getContentPositionY() + halfHeight);
 
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:getTranslationX " + frame.getTranslationX());
-        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:getTranslationY " + frame.getTranslationY());
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:getContentPositionX " + frame.getContentPositionX());
+        HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:getContentPositionY " + frame.getContentPositionY());
         HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:centerX " + centerX);
         HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:centerY " + centerY);
         HiLog.debug(LABEL_LOG, "movedBeyondTopBorder:RECT_TOP " + RECT_TOP);

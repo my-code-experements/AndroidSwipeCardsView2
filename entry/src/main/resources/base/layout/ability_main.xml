@@ -7,95 +7,101 @@
     ohos:alignment="center"
     ohos:background_element="#ddd"
     ohos:orientation="vertical">
+
     <in.arjsna.swipecardlib.SwipeCardView
+        ohos:id="$+id:card_stack_view"
         ohos:height="0"
         ohos:width="match_parent"
         ohos:weight="1"
-        ohos:id="$+id:card_stack_view"
         swipecard:rotation_degrees="15.5"
         />
 
-<!--    swipecard:bottom_swipe_detect="false"-->
-    <Text
-        ohos:height="match_content"
-        ohos:width="match_parent"
-        ohos:text="Helo World"
-        ohos:text_size="44fp"/>
+    <!--    swipecard:bottom_swipe_detect="false"-->
+
 
     <DirectionalLayout
 
         ohos:height="match_content"
         ohos:width="match_parent"
-        ohos:orientation="horizontal"
-        ohos:bottom_margin="20vp">
+        ohos:bottom_margin="20vp"
+        ohos:orientation="horizontal">
+
         <Button
             ohos:id="$+id:left"
+            ohos:height="match_content"
+            ohos:width="0"
+            ohos:background_element="#000"
+            ohos:right_margin="10vp"
             ohos:text="Throw Left"
-            ohos:height="match_content"
-            ohos:width="0"
-            ohos:weight="1"
-            ohos:right_margin="10vp"
-            ohos:text_size="44fp"
-            ohos:background_element="#000"
             ohos:text_color="#fff"
-            />  <Button
-            ohos:id="$+id:right"
-            ohos:text="Throw right"
-            ohos:height="match_content"
-            ohos:width="0"
-            ohos:weight="1"
-            ohos:right_margin="10vp"
             ohos:text_size="44fp"
-            ohos:background_element="#000"
-            ohos:text_color="#fff"
+            ohos:weight="1"
             />
+
+        <Button
+            ohos:id="$+id:right"
+            ohos:height="match_content"
+            ohos:width="0"
+            ohos:background_element="#000"
+            ohos:right_margin="10vp"
+            ohos:text="Throw right"
+            ohos:text_color="#fff"
+            ohos:text_size="44fp"
+            ohos:weight="1"
+            />
+
         <Button
             ohos:id="$+id:position"
-            ohos:text="position"
             ohos:height="match_content"
             ohos:width="0"
-            ohos:weight="1"
-            ohos:right_margin="10vp"
-            ohos:text_size="44fp"
             ohos:background_element="#000"
+            ohos:right_margin="10vp"
+            ohos:text="position"
             ohos:text_color="#fff"
+            ohos:text_size="44fp"
+            ohos:weight="1"
             />
     </DirectionalLayout>
+
     <DirectionalLayout
         ohos:height="match_content"
         ohos:width="match_parent"
         ohos:orientation="horizontal">
+
         <Button
             ohos:id="$+id:bottom"
+            ohos:height="match_content"
+            ohos:width="0"
+            ohos:background_element="#000"
+            ohos:right_margin="10vp"
             ohos:text="Throw bottom"
-            ohos:height="match_content"
-            ohos:width="0"
-            ohos:weight="1"
-            ohos:right_margin="10vp"
-            ohos:text_size="44fp"
-            ohos:background_element="#000"
             ohos:text_color="#fff"
-            />  <Button
-            ohos:id="$+id:top"
-            ohos:text="Throw top"
-            ohos:height="match_content"
-            ohos:width="0"
-            ohos:weight="1"
-            ohos:right_margin="10vp"
             ohos:text_size="44fp"
-            ohos:background_element="#000"
-            ohos:text_color="#fff"
+            ohos:weight="1"
             />
+
+        <Button
+            ohos:id="$+id:top"
+            ohos:height="match_content"
+            ohos:width="0"
+            ohos:background_element="#000"
+            ohos:right_margin="10vp"
+            ohos:text="Throw top"
+            ohos:text_color="#fff"
+            ohos:text_size="44fp"
+            ohos:weight="1"
+            />
+
         <Button
             ohos:id="$+id:restart"
-            ohos:text="restart"
             ohos:height="match_content"
             ohos:width="0"
-            ohos:weight="1"
-            ohos:right_margin="10vp"
-            ohos:text_size="44fp"
             ohos:background_element="#000"
+            ohos:right_margin="10vp"
+            ohos:text="restart"
             ohos:text_color="#fff"
+            ohos:text_size="44fp"
+            ohos:weight="1"
             />
     </DirectionalLayout>
 </DirectionalLayout>
